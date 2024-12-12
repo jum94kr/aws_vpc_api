@@ -7,15 +7,17 @@
 
 body {
   font-family: 'Roboto', sans-serif;
-  background-color: #f0f2f5;
+  background-color: #f4f6f9;
+  color: #34495e;
 }
 
 /* App container styling */
 .App {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
 }
 
 /* Login Page Styling */
@@ -32,20 +34,14 @@ body {
   padding: 40px 30px;
   border-radius: 12px;
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-  width: 350px;
+  width: 400px;
   text-align: center;
 }
 
 .login-container h2 {
-  font-size: 26px;
+  font-size: 28px;
   margin-bottom: 20px;
   color: #2c3e50;
-}
-
-.login-container p {
-  font-size: 16px;
-  color: #7f8c8d;
-  margin-bottom: 30px;
 }
 
 .input-field {
@@ -77,35 +73,80 @@ body {
 .dashboard {
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 30px;
   padding: 40px;
+  width: 80%;
+  max-width: 1200px;
+  margin-top: 30px;
 }
 
 .dashboard h1 {
-  font-size: 32px;
+  font-size: 36px;
   margin-bottom: 20px;
   color: #34495e;
 }
 
 .data-section {
-  background-color: white;
-  padding: 20px;
+  background-color: #ffffff;
+  padding: 25px;
   border-radius: 12px;
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease-in-out;
+}
+
+.data-section:hover {
+  transform: translateY(-5px);
 }
 
 .data-section h3 {
-  font-size: 22px;
-  margin-bottom: 10px;
+  font-size: 24px;
+  margin-bottom: 15px;
   color: #2c3e50;
 }
 
-.data-section p {
-  font-size: 16px;
-  color: #7f8c8d;
+.data-section ul {
+  list-style-type: none;
+  padding: 0;
 }
 
-hr {
+.data-section li {
+  padding: 10px;
+  margin: 10px 0;
+  background-color: #ecf0f1;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.data-section li:hover {
+  background-color: #3498db;
+  color: white;
+}
+
+.table-container {
   margin-top: 20px;
-  border: 1px solid #ecf0f1;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 15px;
+  text-align: left;
+  font-size: 16px;
+}
+
+th {
+  background-color: #3498db;
+  color: white;
+}
+
+tr:nth-child(even) {
+  background-color: #f4f6f9;
+}
+
+tr:hover {
+  background-color: #e1e8f0;
 }
