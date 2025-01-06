@@ -1,23 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import AWS from 'aws-sdk';
+import IPsecProfile from './IPsecProfile'; // IPsecProfile 컴포넌트 import
 
-const Dashboard = () => {
+const Dashboard = ({ setIpsecInfo }) => {
   const [vpnConnections, setVpnConnections] = useState([]);
   const [vpnConfig, setVpnConfig] = useState(null);
   const [detailedConfig, setDetailedConfig] = useState(null);
-  const [expandedConfig, setExpandedConfig] = useState(false);
+  const [expandedConfig, setExpandedConfig] = useState(null); // 선택된 VPN의 세부 정보 상태
   const [loading, setLoading] = useState(true);
   const [selectedVpn, setSelectedVpn] = useState(null);
   const [customerGatewayIp, setCustomerGatewayIp] = useState('');
   const [customerGateways, setCustomerGateways] = useState([]);
   const [selectedCustomerGateway, setSelectedCustomerGateway] = useState(null);
 
-  // Customer Gateway 추가 상태
+  // 새로운 Customer Gateway 추가
   const [newCustomerGatewayIp, setNewCustomerGatewayIp] = useState('');
   const [newCustomerGatewayBgpAsn, setNewCustomerGatewayBgpAsn] = useState('');
   const [newCustomerGatewayName, setNewCustomerGatewayName] = useState('');
 
-  // 모든 VPN 연결 정보 가져오기
+  // VPN 연결 정보 가져오기
   const fetchVpnConnections = async () => {
     const ec2 = new AWS.EC2();
     try {
@@ -136,25 +137,6 @@ const Dashboard = () => {
     }
   };
 
-  // VPN 설정 업데이트 함수
-  const updateVpnConfig = async (newCustomerGatewayId) => {
-    const ec2 = new AWS.EC2();
-    try {
-      const params = {
-        VpnConnectionId: vpnConfig?.VpnConnectionId, // null 체크 추가
-        CustomerGatewayId: newCustomerGatewayId,
-      };
-      await ec2.modifyVpnConnection(params).promise();
-      console.log('VPN 설정이 업데이트되었습니다.');
-
-      // VPN 설정 업데이트 후, 새로운 Customer Gateway 정보로 업데이트
-      setSelectedCustomerGateway(newCustomerGatewayId);
-      fetchVpnConfig(vpnConfig?.VpnConnectionId); // 다시 VPN 정보를 새로 불러옴
-    } catch (err) {
-      console.error('VPN 설정을 업데이트하는 중 오류:', err);
-    }
-  };
-
   // 상세한 VPN 설정을 가져오는 함수
   const fetchDetailedConfig = async (vpnId) => {
     const ec2 = new AWS.EC2();
@@ -179,6 +161,42 @@ const Dashboard = () => {
     } else {
       fetchDetailedConfig(vpnId);
       setExpandedConfig(true);
+    }
+  };
+
+  // VPN 연결의 Customer Gateway 변경
+  const updateVpnConfig = (customerGatewayId) => {
+    setSelectedCustomerGateway(customerGatewayId);
+    fetchCustomerGatewayIp(customerGatewayId);
+  };
+
+  // IPsec Push 버튼을 눌렀을 때의 처리
+  const handlePush = async () => {
+    if (!vpnConfig) {
+      alert('VPN 연결을 선택하세요.');
+      return;
+    }
+
+    const { VpnConnectionId, CustomerGatewayId } = vpnConfig;
+
+    const ipsecProfile = {
+      VpnConnectionId,
+      CustomerGatewayId,
+      IpsecSettings: {
+        // IPsec 프로파일 설정 (예시)
+        TunnelInsideCidr: vpnConfig.Options?.TunnelOptions[0]?.TunnelInsideCidr || '정보 없음',
+        PreSharedKey: vpnConfig.Options?.TunnelOptions[0]?.PreSharedKey || '정보 없음',
+        TunnelOutsideIp: vpnConfig.Options?.TunnelOptions[0]?.OutsideIpAddress || '정보 없음',
+      },
+    };
+
+    try {
+      // IPsec 프로파일 푸시 작업 수행
+      setIpsecInfo(ipsecProfile); // IPsec 정보 업데이트
+      alert('IPsec 프로파일이 성공적으로 푸시되었습니다.');
+    } catch (error) {
+      console.error('IPsec 프로파일 푸시 중 오류:', error);
+      alert('IPsec 프로파일 푸시 실패');
     }
   };
 
@@ -266,6 +284,15 @@ const Dashboard = () => {
           <p>Site-to-Site VPN 연결 없음</p>
         )}
       </div>
+<br></br>
+      {/* IPsec Push 버튼 */}
+      <div className="data-section">
+        {vpnConfig && (
+          <button onClick={handlePush} className="push-button">
+            IPsec 프로파일 푸시
+          </button>
+        )}
+      </div>
 
       {/* VPN 연결 설정 정보 */}
       {vpnConfig && (
@@ -340,29 +367,8 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* 상세 정보 보기 버튼 */}
-      <div className="data-section">
-        {selectedVpn === vpnConfig?.VpnConnectionId && (
-          <div style={{ marginTop: '20px' }}>
-            <button
-              onClick={() => toggleExpandedConfig(vpnConfig?.VpnConnectionId)}
-              className="details-button"
-            >
-              {expandedConfig && detailedConfig?.VpnConnectionId === vpnConfig?.VpnConnectionId
-                ? '세부 정보 닫기'
-                : '세부 정보 보기'}
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* 세부 정보 */}
-      {expandedConfig && detailedConfig && (
-        <div className="data-section">
-          <h3>VPN 연결 세부 정보</h3>
-          <pre>{JSON.stringify(detailedConfig, null, 2)}</pre>
-        </div>
-      )}
+      {/* IPsec 프로파일 정보 */}
+      {selectedVpn && <IPsecProfile ipsecInfo={selectedVpn} />}
     </div>
   );
 };
